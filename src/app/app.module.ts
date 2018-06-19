@@ -11,6 +11,13 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { BLE } from '@ionic-native/ble';
 import { HomePage } from '../pages/home/home';
+import { SettingsProvider } from '../providers/settings/settings';
+
+import { IonicStorageModule } from '@ionic/storage';
+import { NativeAudio } from '@ionic-native/native-audio';
+
+import { BackgroundMode } from '@ionic-native/background-mode';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 // import {
 //   IMqttMessage,
@@ -45,7 +52,10 @@ import { HomePage } from '../pages/home/home';
   ],
   imports: [
     BrowserModule,
-    IonicModule.forRoot(MyApp)
+    HttpClientModule,
+    IonicModule.forRoot(MyApp),
+    IonicStorageModule.forRoot()
+
   ],
   bootstrap: [IonicApp],
   entryComponents: [
@@ -58,9 +68,13 @@ import { HomePage } from '../pages/home/home';
   providers: [
     StatusBar,
     SplashScreen,
+    NativeAudio,
+    BackgroundMode,
+    HttpClient,
     // MqttProvider,
     // HttpClient,
-    BLE
+    BLE,
+    SettingsProvider
   ]
 })
 export class AppModule {}

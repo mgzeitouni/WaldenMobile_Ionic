@@ -25,6 +25,12 @@
     },
     "cordova-plugin-whitelist": {
       "PACKAGE_NAME": "io.ionic.starter"
+    },
+    "cordova-plugin-nativeaudio": {
+      "PACKAGE_NAME": "io.ionic.starter"
+    },
+    "cordova-plugin-background-mode": {
+      "PACKAGE_NAME": "connected.walden"
     }
   },
   "dependent_plugins": {

@@ -2,6 +2,13 @@ import { Component, NgZone } from '@angular/core';
 import { IonicPage, NavController, NavParams, ToastController } from 'ionic-angular';
 import { BLE } from '@ionic-native/ble';
 import { ChangeDetectorRef } from '@angular/core';
+// import { timer } from 'rxjs/observable/timer';
+import { Observable, Subscription } from 'rxjs/Rx';
+import { SettingsProvider } from '../../providers/settings/settings';
+import { NativeAudio } from '@ionic-native/native-audio';
+import { BackgroundMode } from '@ionic-native/background-mode';
+import { HttpClient } from '@angular/common/http';
+
 /**
  * Generated class for the HomePage page.
  *
@@ -24,23 +31,131 @@ export class HomePage {
   discovered:boolean=false;
   connected:boolean=false;
   peripheral;
-  weight=0;
+  reading=0;
+
+  meditationStarted:boolean=false;
+
+  threshold_reading=500;
+
 
   constructor(public navCtrl: NavController, 
               private toastCtrl: ToastController,
               private ble: BLE,
               private ngZone: NgZone,
-              private cd: ChangeDetectorRef) { 
+              private cd: ChangeDetectorRef,
+              public settingsProvider: SettingsProvider,
+              private nativeAudio: NativeAudio,
+              private backgroundMode: BackgroundMode,
+              private http: HttpClient) { 
+
+                //this.meditationStarted=true;
+                // this.startTimer();
+
+                this.nativeAudio.preloadSimple('uniqueId1', 'assets/audio/bell.mp3')
+                
+                this.http.get('https://connected-litter.mybluemix.net/api')
   }
 
+  play(){
+    this.nativeAudio.play('uniqueId1', () => console.log('uniqueId1 is done playing'));
+  }
+
+  error(){
+
+  }
   ionViewDidEnter() {
     console.log('ionViewDidEnter');
     this.scan();
+   
   }
 
-  ionViewWillLeave(){
-    this.onDeviceDisconnected(this.peripheral);
+  // ionViewWillLeave(){
+  //   this.onDeviceDisconnected(this.peripheral);
+  // }
+
+  testReading(){
+    
+   // console.log(this.reading + ": "+this.settingsProvider.thresholdReading +" - "+(this.reading>this.settingsProvider.thresholdReading))
+
+    if (this.reading>this.settingsProvider.thresholdReading && !this.meditationStarted){
+
+      this.meditationStarted=true;
+      this.cd.detectChanges();
+      this.startTimer();
+      
+      
+
+
+    }
+   // return this.reading>this.threshold_reading
   }
+
+  sub: Subscription;
+  ticks = 2;
+  minutesDisplay: number = 0;
+  hoursDisplay: number = 0;
+  secondsDisplay: number = 0;
+
+
+ finishMeditation(){
+  this.vibrateOn();
+  this.meditationStarted=false;
+  
+  this.play();
+
+  this.cd.detectChanges();
+
+  this.http.get('https://connected-litter.mybluemix.net/api').subscribe(res=>console.log(res))
+
+  var that = this;
+
+  setTimeout(function(){
+    that.vibrateOff();
+  },3000)
+ }
+
+
+  startTimer(){
+
+     var that = this;
+
+    let timer = Observable.timer(1, 1000);
+    this.sub = timer.subscribe(
+        t => {
+            that.ticks = Math.floor((that.settingsProvider.timerLength)*60)-t;
+            
+            that.secondsDisplay = that.getSeconds(that.ticks);
+            that.minutesDisplay = that.getMinutes(that.ticks);
+           // that.hoursDisplay = that.getHours(that.ticks);
+
+            // At 0, trigger vibration
+            if(that.ticks==0){
+
+              that.finishMeditation();
+
+            }
+
+
+        }
+    );
+  }
+
+  private getSeconds(ticks: number) {
+    return this.pad(ticks % 60);
+}
+
+private getMinutes(ticks: number) {
+     return this.pad((Math.floor(ticks / 60)) % 60);
+}
+
+private getHours(ticks: number) {
+    return this.pad(Math.floor((ticks / 60) / 60));
+}
+
+private pad(digit: any) { 
+    return digit <= 9 ? '0' + digit : digit;
+}
+
 
   scan() {
     //this.setStatus('Scanning for BLE Device...');
@@ -53,23 +168,61 @@ export class HomePage {
   //  setTimeout(this.setStatus.bind(this), 5000, 'Scan complete');
   }
 
+  vibrateOn(){
+
+    var value =this.str2ab("1")
+
+    this.ble.write(this.peripheral.id, this.peripheral.services[0],this.peripheral.characteristics[1].characteristic,value).then(
+      result=> {
+      }).catch(error=> {
+          alert(JSON.stringify(error));
+      });
+  }
+
+  vibrateOff(){
+
+    var value =this.str2ab("0")
+
+    this.ble.write(this.peripheral.id, this.peripheral.services[0],this.peripheral.characteristics[1].characteristic,value).then(
+      result=> {
+      }).catch(error=> {
+          alert(JSON.stringify(error));
+      });
+  }
+
+
   onConnected(peripheral) {
 
      // this.setStatus('');
      this.connected=true;
       this.peripheral = peripheral;
-    
+
+      console.log(JSON.stringify(this.peripheral))
+
+      this.backgroundMode.enable();
+      
+      this.backgroundMode.on("activate").subscribe(()=>{
+
+     
+
       this.ble.startNotification(this.peripheral.id, this.peripheral.services[0],this.peripheral.characteristics[0].characteristic)
     .subscribe(buf=>{
-      //let data = this.bytesToString(new Uint8Array(buf));
-      let json=JSON.parse(JSON.stringify(new Uint8Array(buf)))
-      let arr =Object.values(json)
-    
-      this.weight =  new Float32Array(new Uint8Array(arr).buffer)[0];
-      console.log(this.weight)
+
+
+  let json=JSON.parse(JSON.stringify(new Uint8Array(buf)))
+  let arr =Object.values(json)
+
+  this.reading =  new Float32Array(new Uint8Array(arr).buffer)[0];
+
+  this.testReading();
+      
+     // console.log(  this.reading )
+     this.http.get('https://connected-litter.mybluemix.net/api').subscribe(res=>console.log(res))
       this.cd.detectChanges();
 
       })
+
+    })
    
   }
   onDeviceDisconnected(peripheral) {
@@ -80,23 +233,26 @@ export class HomePage {
     this.connected=false;
   }
 
-  readData(){
-    console.log('requested dataaaaaa');
-    let that=this;
-    this.ble.startNotification(this.peripheral.id, this.peripheral.services[0],this.peripheral.characteristics[0].characteristic)
-    .subscribe(buf=>{
-      //let data = this.bytesToString(new Uint8Array(buf));
-      let json=JSON.parse(JSON.stringify(new Uint8Array(buf)))
-      let arr =Object.values(json)
+
+  arrayBufferToString(buffer){
+
+    var bufView = new Uint8Array(buffer);
+    var length = bufView.length;
+    var result = '';
+    var addition = 19;
     
-      that.weight =  new Float32Array(new Uint8Array(arr).buffer)[0];
-      console.log(that.weight)
-
-
-      })
-
-  }
-
+    for(var i = 0;i<length;i+=addition){
+    
+        if(i + addition > length){
+            addition = length - i;
+        }
+        result += String.fromCharCode.apply(null, 
+    bufView.subarray(i,i+addition));
+    }
+    
+    return result;
+    
+    }
 
   bytesToString(buffer) {
     return String.fromCharCode.apply(null, new Uint8Array(buffer));
@@ -104,9 +260,10 @@ export class HomePage {
 
 
   onDeviceDiscovered(device) {
-    console.log('Discovered ' + JSON.stringify(device, null, 2));
-    if (device.name !==undefined && device.name.toString().indexOf("Kitty")>-1){
+ console.log(JSON.stringify(device))
+    if (device.advertising.kCBAdvDataLocalName !==undefined && device.advertising.kCBAdvDataLocalName.toString().indexOf("Walden")>-1){
     console.log("--------------------------FOUND-------------------") 
+    console.log('Discovered ' + JSON.stringify(device, null, 2));
       this.device = device;
       this.discovered = true;
     }

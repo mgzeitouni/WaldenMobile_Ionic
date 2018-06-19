@@ -1,8 +1,16 @@
 <ion-header>
     <ion-navbar>
       <ion-title>
-        BLE Connect
+        Walden Mobile
       </ion-title>
+
+      <ion-buttons start *ngIf="!connected">
+          <button ion-button color="dark" icon-only item-left  (click)="navCtrl.push('ConfigPage')">
+            <ion-icon name="cog"></ion-icon>
+          </button>
+        </ion-buttons>
+
+
       <ion-buttons end>
         <button ion-button (click)="scan()">
           Scan
@@ -11,17 +19,16 @@
     </ion-navbar>
   </ion-header>
 
-  <ion-content>
 
-
+  <ion-content>  <br><br>
 
 
         <ion-card >
         <ion-row >
          
-          <ion-item *ngIf="!discovered"><h1>Searching for litter box...</h1></ion-item>
-          <ion-item *ngIf="discovered && !connected"><h1>Litter Box found!</h1></ion-item>
-          <ion-item *ngIf="connected"><h1>Litter Box connected!</h1></ion-item>
+          <ion-item *ngIf="!discovered"><h1>Searching for cushion...</h1></ion-item>
+          <ion-item *ngIf="discovered && !connected"><h1>Cushion found!</h1></ion-item>
+          <ion-item *ngIf="connected"><h1>Walden cushion connected!</h1></ion-item>
         </ion-row>
         <ion-row>
           <ion-col>
@@ -34,60 +41,47 @@
       </ion-row>
   
     </ion-card >
-       <!-- <ion-row>
-         <ion-card *ngIf="connected">
-           <ion-card-header>
-           Change blinking frequency...
-          </ion-card-header>
 
-          <ion-card-content>
-              <ion-item >
-                  <ion-range min="0" max="30" [(ngModel)]="newBlinkSpeed" color="secondary" (ionChange)="rangeChange()">
-                      <ion-label range-left>0 Hz</ion-label>
-                      <ion-label range-right>5 Hz</ion-label>
-                    </ion-range>
-                </ion-item>
-      
-          </ion-card-content>
-           </ion-card>
-        </ion-row>-->
-     
-       
-      <ion-item no-lines text-center class="circle" *ngIf="connected">
-        <br><br>
-          <h1 style="font-size:40px;">Weight:</h1>
-          <br><br>
-          <h1 *ngIf="weight>0" style="font-size:60px;"> {{weight | number:'0.1-1'}}</h1>
-          <br>
-          <h2 *ngIf="weight>0" style="font-size:40px;">lbs</h2>
-        </ion-item>
+    <ion-item no-lines *ngIf="!meditationStarted && connected">
+      <br><br>
+      <h1>Waiting to begin meditation...</h1>
+    </ion-item>
 
+      <ion-item *ngIf="meditationStarted">
+        <ion-grid  >
+          <ion-row justify-content-center>
+            <h1>Beginning Meditation!</h1>
+          </ion-row>
+          <ion-row justify-content-center>
+              <img style="height:150px;width:200px;" src="assets/imgs/meditating.png">
+          </ion-row>
+         <ion-row justify-content-center>
+            <h1>
+              {{(minutesDisplay) && (minutesDisplay <= 59) ? minutesDisplay : '00'}} : {{(secondsDisplay) && (secondsDisplay <= 59) ? secondsDisplay : '00'}} <br/>
+            </h1>
+         </ion-row>
 
+        </ion-grid>
+      </ion-item>
 
-        <!-- <ion-row>
-          <ion-card *ngIf="connected">
-            <ion-card-header>
-              Weight:
-            </ion-card-header>
-            <ion-card-content>
-              
-                <h1>{{weight | number:'0.2-2'}} lbs</h1>
-            </ion-card-content>
-        
-          </ion-card>
-        </ion-row> -->
-
-      
 
 </ion-content>
-  
-  <!-- <ion-content>
-     <ion-list> 
-      <button ion-item *ngFor="let device of devices" (click)="deviceSelected(device)">
-        <h2>{{ device.name || 'Unnamed' }}</h2>
-        <p>{{ device.id }}</p>
-        <p>RSSI: {{ device.rssi }}</p>
-      </button>  
-     </ion-list> 
-  </ion-content> -->
-  
+
+
+<ion-footer  *ngIf="connected">
+
+    <ion-toolbar>
+              
+
+          <ion-grid>
+            <ion-row align-items-center>
+              <ion-col>
+                  Pressure reading: {{reading}}
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+            
+         
+      </ion-toolbar>
+
+    </ion-footer> 
