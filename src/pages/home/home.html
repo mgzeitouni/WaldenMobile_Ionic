@@ -1,0 +1,93 @@
+<ion-header>
+    <ion-navbar>
+      <ion-title>
+        BLE Connect
+      </ion-title>
+      <ion-buttons end>
+        <button ion-button (click)="scan()">
+          Scan
+        </button>
+      </ion-buttons>
+    </ion-navbar>
+  </ion-header>
+
+  <ion-content>
+
+
+
+
+        <ion-card >
+        <ion-row >
+         
+          <ion-item *ngIf="!discovered"><h1>Searching for litter box...</h1></ion-item>
+          <ion-item *ngIf="discovered && !connected"><h1>Litter Box found!</h1></ion-item>
+          <ion-item *ngIf="connected"><h1>Litter Box connected!</h1></ion-item>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+          <button ion-button large round color="secondary" (click)="connectDevice();" >Connect</button>
+        </ion-col>
+        <ion-col>
+            <button ion-button large round color="danger" (click)="onDeviceDisconnected(peripheral)" >Disconnect</button>
+          </ion-col>
+       
+      </ion-row>
+  
+    </ion-card >
+       <!-- <ion-row>
+         <ion-card *ngIf="connected">
+           <ion-card-header>
+           Change blinking frequency...
+          </ion-card-header>
+
+          <ion-card-content>
+              <ion-item >
+                  <ion-range min="0" max="30" [(ngModel)]="newBlinkSpeed" color="secondary" (ionChange)="rangeChange()">
+                      <ion-label range-left>0 Hz</ion-label>
+                      <ion-label range-right>5 Hz</ion-label>
+                    </ion-range>
+                </ion-item>
+      
+          </ion-card-content>
+           </ion-card>
+        </ion-row>-->
+     
+       
+      <ion-item no-lines text-center class="circle" *ngIf="connected">
+        <br><br>
+          <h1 style="font-size:40px;">Weight:</h1>
+          <br><br>
+          <h1 *ngIf="weight>0" style="font-size:60px;"> {{weight | number:'0.1-1'}}</h1>
+          <br>
+          <h2 *ngIf="weight>0" style="font-size:40px;">lbs</h2>
+        </ion-item>
+
+
+
+        <!-- <ion-row>
+          <ion-card *ngIf="connected">
+            <ion-card-header>
+              Weight:
+            </ion-card-header>
+            <ion-card-content>
+              
+                <h1>{{weight | number:'0.2-2'}} lbs</h1>
+            </ion-card-content>
+        
+          </ion-card>
+        </ion-row> -->
+
+      
+
+</ion-content>
+  
+  <!-- <ion-content>
+     <ion-list> 
+      <button ion-item *ngFor="let device of devices" (click)="deviceSelected(device)">
+        <h2>{{ device.name || 'Unnamed' }}</h2>
+        <p>{{ device.id }}</p>
+        <p>RSSI: {{ device.rssi }}</p>
+      </button>  
+     </ion-list> 
+  </ion-content> -->
+  
