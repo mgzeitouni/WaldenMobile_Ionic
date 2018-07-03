@@ -7,23 +7,29 @@
     "files": {}
   },
   "installed_plugins": {
+    "cordova-plugin-background-mode": {
+      "PACKAGE_NAME": "connected.walden"
+    },
     "cordova-plugin-ble-central": {
-      "PACKAGE_NAME": "io.ionic.starter"
+      "PACKAGE_NAME": "connected.walden"
     },
     "cordova-plugin-device": {
-      "PACKAGE_NAME": "io.ionic.starter"
+      "PACKAGE_NAME": "connected.walden"
     },
     "cordova-plugin-ionic-keyboard": {
-      "PACKAGE_NAME": "io.ionic.starter"
+      "PACKAGE_NAME": "connected.walden"
     },
     "cordova-plugin-ionic-webview": {
-      "PACKAGE_NAME": "io.ionic.starter"
+      "PACKAGE_NAME": "connected.walden"
+    },
+    "cordova-plugin-nativeaudio": {
+      "PACKAGE_NAME": "connected.walden"
     },
     "cordova-plugin-splashscreen": {
-      "PACKAGE_NAME": "io.ionic.starter"
+      "PACKAGE_NAME": "connected.walden"
     },
     "cordova-plugin-whitelist": {
-      "PACKAGE_NAME": "io.ionic.starter"
+      "PACKAGE_NAME": "connected.walden"
     }
   },
   "dependent_plugins": {}

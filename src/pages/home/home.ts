@@ -51,9 +51,15 @@ export class HomePage {
                 //this.meditationStarted=true;
                 // this.startTimer();
 
-                this.nativeAudio.preloadSimple('uniqueId1', 'assets/audio/bell.mp3')
+              //  this.nativeAudio.preloadSimple('uniqueId1', 'assets/audio/bell.mp3')
                 
-                this.http.get('https://connected-litter.mybluemix.net/api')
+              this.backgroundMode.enable();
+          
+
+  }
+
+  callAPI(){
+    this.http.get("https://connected-litter.mybluemix.net/test-background?ticks="+this.ticks).subscribe(res=>console.log(res))
   }
 
   play(){
@@ -66,7 +72,7 @@ export class HomePage {
   ionViewDidEnter() {
     console.log('ionViewDidEnter');
     this.scan();
-   
+
   }
 
   // ionViewWillLeave(){
@@ -82,6 +88,8 @@ export class HomePage {
       this.meditationStarted=true;
       this.cd.detectChanges();
       this.startTimer();
+
+      this.callAPI();
       
       
 
@@ -105,7 +113,7 @@ export class HomePage {
 
   this.cd.detectChanges();
 
-  this.http.get('https://connected-litter.mybluemix.net/api').subscribe(res=>console.log(res))
+  // this.http.get('https://connected-litter.mybluemix.net/api').subscribe(res=>console.log(res))
 
   var that = this;
 
@@ -200,29 +208,31 @@ private pad(digit: any) {
       console.log(JSON.stringify(this.peripheral))
 
       this.backgroundMode.enable();
-      
+
       this.backgroundMode.on("activate").subscribe(()=>{
+        console.log('in the background!')
 
      
+          this.ble.startNotification(this.peripheral.id, this.peripheral.services[0],this.peripheral.characteristics[0].characteristic)
+        .subscribe(buf=>{
+            
 
-      this.ble.startNotification(this.peripheral.id, this.peripheral.services[0],this.peripheral.characteristics[0].characteristic)
-    .subscribe(buf=>{
+      let json=JSON.parse(JSON.stringify(new Uint8Array(buf)))
+      let arr =Object.values(json)
 
+      this.reading =  new Float32Array(new Uint8Array(arr).buffer)[0];
 
-  let json=JSON.parse(JSON.stringify(new Uint8Array(buf)))
-  let arr =Object.values(json)
+    //  console.log(this.reading)
 
-  this.reading =  new Float32Array(new Uint8Array(arr).buffer)[0];
+      this.testReading();
+          
+          this.cd.detectChanges();
 
-  this.testReading();
-      
-     // console.log(  this.reading )
-     this.http.get('https://connected-litter.mybluemix.net/api').subscribe(res=>console.log(res))
-      this.cd.detectChanges();
-
-      })
+          })
 
     })
+
+    
    
   }
   onDeviceDisconnected(peripheral) {
@@ -261,7 +271,7 @@ private pad(digit: any) {
 
   onDeviceDiscovered(device) {
  console.log(JSON.stringify(device))
-    if (device.advertising.kCBAdvDataLocalName !==undefined && device.advertising.kCBAdvDataLocalName.toString().indexOf("Walden")>-1){
+    if ( device.advertising.kCBAdvDataLocalName !==undefined && device.advertising.kCBAdvDataLocalName.toString().indexOf("Walden")>-1 || (device.name && device.name.toString().indexOf("Walden")>-1)){
     console.log("--------------------------FOUND-------------------") 
     console.log('Discovered ' + JSON.stringify(device, null, 2));
       this.device = device;
@@ -313,6 +323,20 @@ console.log(sendBLE)
 
   }
 
+  goBackground(){
+    var that =this;
+
+    this.backgroundMode.enable();
+
+    this.backgroundMode.on("activate").subscribe(()=>{
+      setInterval(function(){
+        console.log('in the background!');
+        that.callAPI();
+       // that.http.get("https://connected-litter.mybluemix.net/test-background")
+      }, 2000 )
+  
+    })
+  }
 
   // If location permission is denied, you'll end up here
   // scanError(error) {

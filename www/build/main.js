@@ -38,20 +38,20 @@ var awsmobile = {
 
 /***/ }),
 
-/***/ 228:
+/***/ 229:
 /***/ (function(module, exports) {
 
 /* (ignored) */
 
 /***/ }),
 
-/***/ 252:
+/***/ 253:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SettingsProvider; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_storage__ = __webpack_require__(309);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_storage__ = __webpack_require__(310);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -100,7 +100,7 @@ var SettingsProvider = /** @class */ (function () {
 
 /***/ }),
 
-/***/ 253:
+/***/ 254:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -110,9 +110,9 @@ var SettingsProvider = /** @class */ (function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_native_ble__ = __webpack_require__(174);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_rxjs_Rx__ = __webpack_require__(590);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_rxjs_Rx___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_rxjs_Rx__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__providers_settings_settings__ = __webpack_require__(252);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_native_native_audio__ = __webpack_require__(404);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__ = __webpack_require__(405);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__providers_settings_settings__ = __webpack_require__(253);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_native_native_audio__ = __webpack_require__(405);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__ = __webpack_require__(191);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__angular_common_http__ = __webpack_require__(406);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -166,9 +166,12 @@ var HomePage = /** @class */ (function () {
         this.minutesDisplay = 0;
         this.hoursDisplay = 0;
         this.secondsDisplay = 0;
-        this.nativeAudio.preloadSimple('uniqueId1', 'assets/audio/bell.mp3');
-        this.http.get('https://connected-litter.mybluemix.net/api');
+        //  this.nativeAudio.preloadSimple('uniqueId1', 'assets/audio/bell.mp3')
+        this.backgroundMode.enable();
     }
+    HomePage.prototype.callAPI = function () {
+        this.http.get("https://connected-litter.mybluemix.net/test-background?ticks=" + this.ticks).subscribe(function (res) { return console.log(res); });
+    };
     HomePage.prototype.play = function () {
         this.nativeAudio.play('uniqueId1', function () { return console.log('uniqueId1 is done playing'); });
     };
@@ -187,6 +190,7 @@ var HomePage = /** @class */ (function () {
             this.meditationStarted = true;
             this.cd.detectChanges();
             this.startTimer();
+            this.callAPI();
         }
         // return this.reading>this.threshold_reading
     };
@@ -195,7 +199,7 @@ var HomePage = /** @class */ (function () {
         this.meditationStarted = false;
         this.play();
         this.cd.detectChanges();
-        this.http.get('https://connected-litter.mybluemix.net/api').subscribe(function (res) { return console.log(res); });
+        // this.http.get('https://connected-litter.mybluemix.net/api').subscribe(res=>console.log(res))
         var that = this;
         setTimeout(function () {
             that.vibrateOff();
@@ -256,14 +260,14 @@ var HomePage = /** @class */ (function () {
         console.log(JSON.stringify(this.peripheral));
         this.backgroundMode.enable();
         this.backgroundMode.on("activate").subscribe(function () {
+            console.log('in the background!');
             _this.ble.startNotification(_this.peripheral.id, _this.peripheral.services[0], _this.peripheral.characteristics[0].characteristic)
                 .subscribe(function (buf) {
                 var json = JSON.parse(JSON.stringify(new Uint8Array(buf)));
                 var arr = Object.values(json);
                 _this.reading = new Float32Array(new Uint8Array(arr).buffer)[0];
+                //  console.log(this.reading)
                 _this.testReading();
-                // console.log(  this.reading )
-                _this.http.get('https://connected-litter.mybluemix.net/api').subscribe(function (res) { return console.log(res); });
                 _this.cd.detectChanges();
             });
         });
@@ -291,7 +295,7 @@ var HomePage = /** @class */ (function () {
     };
     HomePage.prototype.onDeviceDiscovered = function (device) {
         console.log(JSON.stringify(device));
-        if (device.advertising.kCBAdvDataLocalName !== undefined && device.advertising.kCBAdvDataLocalName.toString().indexOf("Walden") > -1) {
+        if (device.advertising.kCBAdvDataLocalName !== undefined && device.advertising.kCBAdvDataLocalName.toString().indexOf("Walden") > -1 || (device.name && device.name.toString().indexOf("Walden") > -1)) {
             console.log("--------------------------FOUND-------------------");
             console.log('Discovered ' + JSON.stringify(device, null, 2));
             this.device = device;
@@ -327,28 +331,32 @@ var HomePage = /** @class */ (function () {
             alert(JSON.stringify(error));
         });
     };
+    HomePage.prototype.goBackground = function () {
+        var that = this;
+        this.backgroundMode.enable();
+        this.backgroundMode.on("activate").subscribe(function () {
+            setInterval(function () {
+                console.log('in the background!');
+                that.callAPI();
+                // that.http.get("https://connected-litter.mybluemix.net/test-background")
+            }, 2000);
+        });
+    };
     HomePage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
-            selector: 'page-home',template:/*ion-inline-start:"/Users/morris/smart-products/connected-walden/src/pages/home/home.html"*/'<ion-header>\n    <ion-navbar>\n      <ion-title>\n        Walden Mobile\n      </ion-title>\n\n      <ion-buttons start *ngIf="!connected">\n          <button ion-button color="dark" icon-only item-left  (click)="navCtrl.push(\'ConfigPage\')">\n            <ion-icon name="cog"></ion-icon>\n          </button>\n        </ion-buttons>\n\n\n      <ion-buttons end>\n        <button ion-button (click)="scan()">\n          Scan\n        </button>\n      </ion-buttons>\n    </ion-navbar>\n  </ion-header>\n\n\n  <ion-content>  <br><br>\n\n\n        <ion-card >\n        <ion-row >\n         \n          <ion-item *ngIf="!discovered"><h1>Searching for cushion...</h1></ion-item>\n          <ion-item *ngIf="discovered && !connected"><h1>Cushion found!</h1></ion-item>\n          <ion-item *ngIf="connected"><h1>Walden cushion connected!</h1></ion-item>\n        </ion-row>\n        <ion-row>\n          <ion-col>\n          <button ion-button large round color="secondary" (click)="connectDevice();" >Connect</button>\n        </ion-col>\n        <ion-col>\n            <button ion-button large round color="danger" (click)="onDeviceDisconnected(peripheral)" >Disconnect</button>\n          </ion-col>\n       \n      </ion-row>\n  \n    </ion-card >\n\n    <ion-item no-lines *ngIf="!meditationStarted && connected">\n      <br><br>\n      <h1>Waiting to begin meditation...</h1>\n    </ion-item>\n\n      <ion-item *ngIf="meditationStarted">\n        <ion-grid  >\n          <ion-row justify-content-center>\n            <h1>Beginning Meditation!</h1>\n          </ion-row>\n          <ion-row justify-content-center>\n              <img style="height:150px;width:200px;" src="assets/imgs/meditating.png">\n          </ion-row>\n         <ion-row justify-content-center>\n            <h1>\n              {{(minutesDisplay) && (minutesDisplay <= 59) ? minutesDisplay : \'00\'}} : {{(secondsDisplay) && (secondsDisplay <= 59) ? secondsDisplay : \'00\'}} <br/>\n            </h1>\n         </ion-row>\n\n        </ion-grid>\n      </ion-item>\n\n\n</ion-content>\n\n\n<ion-footer  *ngIf="connected">\n\n    <ion-toolbar>\n              \n\n          <ion-grid>\n            <ion-row align-items-center>\n              <ion-col>\n                  Pressure reading: {{reading}}\n              </ion-col>\n            </ion-row>\n          </ion-grid>\n            \n         \n      </ion-toolbar>\n\n    </ion-footer> '/*ion-inline-end:"/Users/morris/smart-products/connected-walden/src/pages/home/home.html"*/,
+            selector: 'page-home',template:/*ion-inline-start:"/Users/morris/smart-products/connected-walden/src/pages/home/home.html"*/'<ion-header>\n    <ion-navbar>\n      <ion-title>\n        Walden Mobile\n      </ion-title>\n\n      <ion-buttons start *ngIf="!connected">\n          <button ion-button color="dark" icon-only item-left  (click)="navCtrl.push(\'ConfigPage\')">\n            <ion-icon name="cog"></ion-icon>\n          </button>\n        </ion-buttons>\n\n\n      <ion-buttons end>\n        <button ion-button (click)="scan()">\n          Scan\n        </button>\n      </ion-buttons>\n    </ion-navbar>\n  </ion-header>\n\n\n  <ion-content>  \n\n\n        <ion-card >\n        <ion-row >\n         \n          <ion-item *ngIf="!discovered"><h1>Searching for cushion...</h1></ion-item>\n          <ion-item *ngIf="discovered && !connected"><h1>Cushion found!</h1></ion-item>\n          <ion-item *ngIf="connected"><h1>Walden cushion connected!</h1></ion-item>\n        </ion-row>\n        <ion-row>\n          <ion-col>\n          <button ion-button large round color="secondary" (click)="connectDevice();" >Connect</button>\n        </ion-col>\n        <ion-col>\n            <button ion-button large round color="danger" (click)="onDeviceDisconnected(peripheral)" >Disconnect</button>\n          </ion-col>\n       \n      </ion-row>\n  \n    </ion-card >\n\n    <ion-item no-lines *ngIf="!meditationStarted && connected">\n      <br><br>\n      <h1>Waiting to begin meditation...</h1>\n    </ion-item>\n\n      <ion-item *ngIf="meditationStarted">\n        <ion-grid  >\n          <ion-row justify-content-center>\n            <h1>Beginning Meditation!</h1>\n          </ion-row>\n          <ion-row justify-content-center>\n              <img style="height:150px;width:200px;" src="assets/imgs/meditating.png">\n          </ion-row>\n         <ion-row justify-content-center>\n            <h1>\n              {{(minutesDisplay) && (minutesDisplay <= 59) ? minutesDisplay : \'00\'}} : {{(secondsDisplay) && (secondsDisplay <= 59) ? secondsDisplay : \'00\'}} <br/>\n            </h1>\n         </ion-row>\n\n        </ion-grid>\n      </ion-item>\n\n      <button ion-button large round (click)="goBackground()">Go Background</button>\n\n\n      <button ion-button large round (click)="callAPI()">Call API</button>\n</ion-content>\n\n\n<ion-footer  *ngIf="connected">\n\n    <ion-toolbar>\n              \n\n          <ion-grid>\n            <ion-row align-items-center>\n              <ion-col>\n                  Pressure reading: {{reading}}\n              </ion-col>\n            </ion-row>\n          </ion-grid>\n            \n         \n      </ion-toolbar>\n\n    </ion-footer> '/*ion-inline-end:"/Users/morris/smart-products/connected-walden/src/pages/home/home.html"*/,
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["d" /* NavController */],
-            __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* ToastController */],
-            __WEBPACK_IMPORTED_MODULE_2__ionic_native_ble__["a" /* BLE */],
-            __WEBPACK_IMPORTED_MODULE_0__angular_core__["M" /* NgZone */],
-            __WEBPACK_IMPORTED_MODULE_0__angular_core__["j" /* ChangeDetectorRef */],
-            __WEBPACK_IMPORTED_MODULE_4__providers_settings_settings__["a" /* SettingsProvider */],
-            __WEBPACK_IMPORTED_MODULE_5__ionic_native_native_audio__["a" /* NativeAudio */],
-            __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__["a" /* BackgroundMode */],
-            __WEBPACK_IMPORTED_MODULE_7__angular_common_http__["a" /* HttpClient */]])
+        __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["d" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["d" /* NavController */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* ToastController */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_2__ionic_native_ble__["a" /* BLE */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__ionic_native_ble__["a" /* BLE */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_0__angular_core__["M" /* NgZone */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_0__angular_core__["M" /* NgZone */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_0__angular_core__["j" /* ChangeDetectorRef */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_0__angular_core__["j" /* ChangeDetectorRef */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_4__providers_settings_settings__["a" /* SettingsProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__providers_settings_settings__["a" /* SettingsProvider */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_5__ionic_native_native_audio__["a" /* NativeAudio */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__ionic_native_native_audio__["a" /* NativeAudio */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__["a" /* BackgroundMode */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__["a" /* BackgroundMode */]) === "function" && _h || Object, typeof (_j = typeof __WEBPACK_IMPORTED_MODULE_7__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_7__angular_common_http__["a" /* HttpClient */]) === "function" && _j || Object])
     ], HomePage);
     return HomePage;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
 }());
 
 //# sourceMappingURL=home.js.map
 
 /***/ }),
 
-/***/ 264:
+/***/ 265:
 /***/ (function(module, exports) {
 
 function webpackEmptyAsyncContext(req) {
@@ -361,11 +369,11 @@ function webpackEmptyAsyncContext(req) {
 webpackEmptyAsyncContext.keys = function() { return []; };
 webpackEmptyAsyncContext.resolve = webpackEmptyAsyncContext;
 module.exports = webpackEmptyAsyncContext;
-webpackEmptyAsyncContext.id = 264;
+webpackEmptyAsyncContext.id = 265;
 
 /***/ }),
 
-/***/ 308:
+/***/ 309:
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -389,7 +397,7 @@ function webpackAsyncContext(req) {
 webpackAsyncContext.keys = function webpackAsyncContextKeys() {
 	return Object.keys(map);
 };
-webpackAsyncContext.id = 308;
+webpackAsyncContext.id = 309;
 module.exports = webpackAsyncContext;
 
 /***/ }),
@@ -500,11 +508,11 @@ Object(__WEBPACK_IMPORTED_MODULE_0__angular_platform_browser_dynamic__["a" /* pl
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__ionic_native_status_bar__ = __webpack_require__(446);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__ionic_native_splash_screen__ = __webpack_require__(447);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__ionic_native_ble__ = __webpack_require__(174);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__pages_home_home__ = __webpack_require__(253);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__providers_settings_settings__ = __webpack_require__(252);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__ionic_storage__ = __webpack_require__(309);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__ionic_native_native_audio__ = __webpack_require__(404);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__ionic_native_background_mode__ = __webpack_require__(405);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__pages_home_home__ = __webpack_require__(254);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__providers_settings_settings__ = __webpack_require__(253);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__ionic_storage__ = __webpack_require__(310);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__ionic_native_native_audio__ = __webpack_require__(405);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__ionic_native_background_mode__ = __webpack_require__(191);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__angular_common_http__ = __webpack_require__(406);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -608,7 +616,8 @@ var AppModule = /** @class */ (function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_native_status_bar__ = __webpack_require__(446);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_splash_screen__ = __webpack_require__(447);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__ionic_native_ble__ = __webpack_require__(174);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__pages_home_home__ = __webpack_require__(253);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__pages_home_home__ = __webpack_require__(254);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__ = __webpack_require__(191);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -624,8 +633,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 
+
 var MyApp = /** @class */ (function () {
-    function MyApp(platform, statusBar, splashScreen, ble) {
+    function MyApp(platform, statusBar, splashScreen, ble, backgroundMode) {
         this.ble = ble;
         this.rootPage = __WEBPACK_IMPORTED_MODULE_5__pages_home_home__["a" /* HomePage */];
         platform.ready().then(function () {
@@ -633,6 +643,7 @@ var MyApp = /** @class */ (function () {
             // Here you can do any higher level native things you might need.
             statusBar.styleDefault();
             splashScreen.hide();
+            // backgroundMode.enable();
         });
     }
     MyApp = __decorate([
@@ -641,7 +652,8 @@ var MyApp = /** @class */ (function () {
         __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["f" /* Platform */],
             __WEBPACK_IMPORTED_MODULE_2__ionic_native_status_bar__["a" /* StatusBar */],
             __WEBPACK_IMPORTED_MODULE_3__ionic_native_splash_screen__["a" /* SplashScreen */],
-            __WEBPACK_IMPORTED_MODULE_4__ionic_native_ble__["a" /* BLE */]])
+            __WEBPACK_IMPORTED_MODULE_4__ionic_native_ble__["a" /* BLE */],
+            __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__["a" /* BackgroundMode */]])
     ], MyApp);
     return MyApp;
 }());
