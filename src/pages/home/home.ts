@@ -51,7 +51,7 @@ export class HomePage {
                 //this.meditationStarted=true;
                 // this.startTimer();
 
-              //  this.nativeAudio.preloadSimple('uniqueId1', 'assets/audio/bell.mp3')
+               this.nativeAudio.preloadSimple('uniqueId1', 'assets/audio/bell.mp3')
                 
               this.backgroundMode.enable();
           
