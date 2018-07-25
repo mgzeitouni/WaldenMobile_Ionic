@@ -209,20 +209,22 @@ private pad(digit: any) {
 
       this.backgroundMode.enable();
 
-      this.backgroundMode.on("activate").subscribe(()=>{
-        console.log('in the background!')
+      // this.backgroundMode.on("activate").subscribe(()=>{
+      //   console.log('in the background!')
 
-     
-          this.ble.startNotification(this.peripheral.id, this.peripheral.services[0],this.peripheral.characteristics[0].characteristic)
+
+          var service = "AFC672E8-6CA4-4252-BE86-B6F20E3F7467";
+          var char = "8204321F-D4BE-4556-9537-2EADB108D28E"
+          this.ble.startNotification(this.peripheral.id, service,char)
         .subscribe(buf=>{
-            
+           
 
       let json=JSON.parse(JSON.stringify(new Uint8Array(buf)))
       let arr =Object.values(json)
 
       this.reading =  new Float32Array(new Uint8Array(arr).buffer)[0];
 
-    //  console.log(this.reading)
+     console.log(this.reading)
 
       this.testReading();
           
@@ -230,7 +232,7 @@ private pad(digit: any) {
 
           })
 
-    })
+    // })
 
     
    

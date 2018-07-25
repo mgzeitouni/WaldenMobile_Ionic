@@ -259,18 +259,20 @@ var HomePage = /** @class */ (function () {
         this.peripheral = peripheral;
         console.log(JSON.stringify(this.peripheral));
         this.backgroundMode.enable();
-        this.backgroundMode.on("activate").subscribe(function () {
-            console.log('in the background!');
-            _this.ble.startNotification(_this.peripheral.id, _this.peripheral.services[0], _this.peripheral.characteristics[0].characteristic)
-                .subscribe(function (buf) {
-                var json = JSON.parse(JSON.stringify(new Uint8Array(buf)));
-                var arr = Object.values(json);
-                _this.reading = new Float32Array(new Uint8Array(arr).buffer)[0];
-                //  console.log(this.reading)
-                _this.testReading();
-                _this.cd.detectChanges();
-            });
+        // this.backgroundMode.on("activate").subscribe(()=>{
+        //   console.log('in the background!')
+        var service = "AFC672E8-6CA4-4252-BE86-B6F20E3F7467";
+        var char = "8204321F-D4BE-4556-9537-2EADB108D28E";
+        this.ble.startNotification(this.peripheral.id, service, char)
+            .subscribe(function (buf) {
+            var json = JSON.parse(JSON.stringify(new Uint8Array(buf)));
+            var arr = Object.values(json);
+            _this.reading = new Float32Array(new Uint8Array(arr).buffer)[0];
+            console.log(_this.reading);
+            _this.testReading();
+            _this.cd.detectChanges();
         });
+        // })
     };
     HomePage.prototype.onDeviceDisconnected = function (peripheral) {
         var _this = this;
