@@ -30,13 +30,11 @@
           <ion-item *ngIf="discovered && !connected"><h1>Cushion found!</h1></ion-item>
           <ion-item *ngIf="connected"><h1>Walden cushion connected!</h1></ion-item>
         </ion-row>
-        <ion-row>
-          <ion-col>
-          <button ion-button large round color="secondary" (click)="connectDevice();" >Connect</button>
-        </ion-col>
-        <ion-col>
-            <button ion-button large round color="danger" (click)="onDeviceDisconnected(peripheral)" >Disconnect</button>
-          </ion-col>
+        <ion-row text-center>
+
+          <button *ngIf="!connected" ion-button large round color="secondary" (click)="connectDevice();" >Connect</button>
+          <button *ngIf="connected" ion-button large round color="danger" (click)="disconnect()" >Disconnect</button>
+
        
       </ion-row>
   
@@ -64,10 +62,6 @@
         </ion-grid>
       </ion-item>
 
-      <button ion-button large round (click)="play()">Play Sound</button>
-
-
-      <button ion-button large round (click)="callAPI()">Call API</button>
 </ion-content>
 
 

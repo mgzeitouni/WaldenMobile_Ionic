@@ -35,7 +35,7 @@ export class HomePage {
 
   meditationStarted:boolean=false;
 
-  threshold_reading=500;
+ // threshold_reading=500;
 
 
   constructor(public navCtrl: NavController, 
@@ -56,10 +56,6 @@ export class HomePage {
               this.backgroundMode.enable();
           
 
-  }
-
-  callAPI(){
-    this.http.get("https://connected-litter.mybluemix.net/test-background?ticks="+this.ticks).subscribe(res=>console.log(res))
   }
 
   play(){
@@ -88,9 +84,6 @@ export class HomePage {
       this.meditationStarted=true;
       this.cd.detectChanges();
       this.startTimer();
-
-      this.callAPI();
-      
       
 
 
@@ -125,13 +118,15 @@ export class HomePage {
 
   startTimer(){
 
+    
      var that = this;
-
+    
     let timer = Observable.timer(1, 1000);
     this.sub = timer.subscribe(
         t => {
             that.ticks = Math.floor((that.settingsProvider.timerLength)*60)-t;
             
+            console.log(that.ticks)
             that.secondsDisplay = that.getSeconds(that.ticks);
             that.minutesDisplay = that.getMinutes(that.ticks);
            // that.hoursDisplay = that.getHours(that.ticks);
@@ -224,7 +219,7 @@ private pad(digit: any) {
 
       this.reading =  new Float32Array(new Uint8Array(arr).buffer)[0];
 
-     console.log(this.reading)
+     // console.log(this.reading)
 
       this.testReading();
           
@@ -235,9 +230,17 @@ private pad(digit: any) {
     // })
 
     
+
    
   }
-  onDeviceDisconnected(peripheral) {
+
+  disconnect(){
+    this.onDeviceDisconnected();
+
+    this.meditationStarted = false;
+  }
+
+  onDeviceDisconnected() {
     this.ble.disconnect(this.peripheral.id).then(
       () => console.log('Disconnected ' + JSON.stringify(this.peripheral)),
       () => console.log('ERROR disconnecting ' + JSON.stringify(this.peripheral))
@@ -333,7 +336,7 @@ console.log(sendBLE)
     this.backgroundMode.on("activate").subscribe(()=>{
       setInterval(function(){
         console.log('in the background!');
-        that.callAPI();
+
        // that.http.get("https://connected-litter.mybluemix.net/test-background")
       }, 2000 )
   

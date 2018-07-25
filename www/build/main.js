@@ -49,68 +49,13 @@ var awsmobile = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SettingsProvider; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_storage__ = __webpack_require__(310);
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-
-
-/*
-  Generated class for the SettingsProvider provider.
-
-  See https://angular.io/guide/dependency-injection for more info on providers
-  and Angular DI.
-*/
-var SettingsProvider = /** @class */ (function () {
-    function SettingsProvider(storage) {
-        this.storage = storage;
-        this.timerLength = 5;
-        this.thresholdReading = 100;
-        console.log('Hello SettingsProvider Provider');
-        var that = this;
-        this.storage.get('data').then(function (data) {
-            if (data !== undefined && data != null) {
-                that.timerLength = parseFloat(data.timerLength);
-                that.thresholdReading = parseInt(data.thresholdReading);
-            }
-        });
-    }
-    SettingsProvider.prototype.setLength = function () {
-        var data = { "timerLength": this.timerLength,
-            "thresholdReading": this.thresholdReading
-        };
-        this.storage.set('data', data);
-    };
-    SettingsProvider = __decorate([
-        Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["A" /* Injectable */])(),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__ionic_storage__["b" /* Storage */]])
-    ], SettingsProvider);
-    return SettingsProvider;
-}());
-
-//# sourceMappingURL=settings.js.map
-
-/***/ }),
-
-/***/ 254:
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return HomePage; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_ionic_angular__ = __webpack_require__(77);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_native_ble__ = __webpack_require__(174);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_rxjs_Rx__ = __webpack_require__(590);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_rxjs_Rx__ = __webpack_require__(587);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_rxjs_Rx___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_rxjs_Rx__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__providers_settings_settings__ = __webpack_require__(253);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__providers_settings_settings__ = __webpack_require__(254);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__ionic_native_native_audio__ = __webpack_require__(405);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__ = __webpack_require__(191);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__angular_common_http__ = __webpack_require__(406);
@@ -140,6 +85,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
  * Ionic pages and navigation.
  */
 var HomePage = /** @class */ (function () {
+    // threshold_reading=500;
     function HomePage(navCtrl, toastCtrl, ble, ngZone, cd, settingsProvider, nativeAudio, backgroundMode, http) {
         //this.meditationStarted=true;
         // this.startTimer();
@@ -161,7 +107,6 @@ var HomePage = /** @class */ (function () {
         this.connected = false;
         this.reading = 0;
         this.meditationStarted = false;
-        this.threshold_reading = 500;
         this.ticks = 2;
         this.minutesDisplay = 0;
         this.hoursDisplay = 0;
@@ -169,9 +114,6 @@ var HomePage = /** @class */ (function () {
         this.nativeAudio.preloadSimple('uniqueId1', 'assets/audio/bell.mp3');
         this.backgroundMode.enable();
     }
-    HomePage.prototype.callAPI = function () {
-        this.http.get("https://connected-litter.mybluemix.net/test-background?ticks=" + this.ticks).subscribe(function (res) { return console.log(res); });
-    };
     HomePage.prototype.play = function () {
         this.nativeAudio.play('uniqueId1', function () { return console.log('uniqueId1 is done playing'); });
     };
@@ -190,7 +132,6 @@ var HomePage = /** @class */ (function () {
             this.meditationStarted = true;
             this.cd.detectChanges();
             this.startTimer();
-            this.callAPI();
         }
         // return this.reading>this.threshold_reading
     };
@@ -210,6 +151,7 @@ var HomePage = /** @class */ (function () {
         var timer = __WEBPACK_IMPORTED_MODULE_3_rxjs_Rx__["Observable"].timer(1, 1000);
         this.sub = timer.subscribe(function (t) {
             that.ticks = Math.floor((that.settingsProvider.timerLength) * 60) - t;
+            console.log(that.ticks);
             that.secondsDisplay = that.getSeconds(that.ticks);
             that.minutesDisplay = that.getMinutes(that.ticks);
             // that.hoursDisplay = that.getHours(that.ticks);
@@ -268,13 +210,17 @@ var HomePage = /** @class */ (function () {
             var json = JSON.parse(JSON.stringify(new Uint8Array(buf)));
             var arr = Object.values(json);
             _this.reading = new Float32Array(new Uint8Array(arr).buffer)[0];
-            console.log(_this.reading);
+            // console.log(this.reading)
             _this.testReading();
             _this.cd.detectChanges();
         });
         // })
     };
-    HomePage.prototype.onDeviceDisconnected = function (peripheral) {
+    HomePage.prototype.disconnect = function () {
+        this.onDeviceDisconnected();
+        this.meditationStarted = false;
+    };
+    HomePage.prototype.onDeviceDisconnected = function () {
         var _this = this;
         this.ble.disconnect(this.peripheral.id).then(function () { return console.log('Disconnected ' + JSON.stringify(_this.peripheral)); }, function () { return console.log('ERROR disconnecting ' + JSON.stringify(_this.peripheral)); });
         this.connected = false;
@@ -339,29 +285,76 @@ var HomePage = /** @class */ (function () {
         this.backgroundMode.on("activate").subscribe(function () {
             setInterval(function () {
                 console.log('in the background!');
-                that.callAPI();
                 // that.http.get("https://connected-litter.mybluemix.net/test-background")
             }, 2000);
         });
     };
     HomePage = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
-            selector: 'page-home',template:/*ion-inline-start:"/Users/morris/smart-products/connected-walden/src/pages/home/home.html"*/'<ion-header>\n    <ion-navbar>\n      <ion-title>\n        Walden Mobile\n      </ion-title>\n\n      <ion-buttons start *ngIf="!connected">\n          <button ion-button color="dark" icon-only item-left  (click)="navCtrl.push(\'ConfigPage\')">\n            <ion-icon name="cog"></ion-icon>\n          </button>\n        </ion-buttons>\n\n\n      <ion-buttons end>\n        <button ion-button (click)="scan()">\n          Scan\n        </button>\n      </ion-buttons>\n    </ion-navbar>\n  </ion-header>\n\n\n  <ion-content>  \n\n\n        <ion-card >\n        <ion-row >\n         \n          <ion-item *ngIf="!discovered"><h1>Searching for cushion...</h1></ion-item>\n          <ion-item *ngIf="discovered && !connected"><h1>Cushion found!</h1></ion-item>\n          <ion-item *ngIf="connected"><h1>Walden cushion connected!</h1></ion-item>\n        </ion-row>\n        <ion-row>\n          <ion-col>\n          <button ion-button large round color="secondary" (click)="connectDevice();" >Connect</button>\n        </ion-col>\n        <ion-col>\n            <button ion-button large round color="danger" (click)="onDeviceDisconnected(peripheral)" >Disconnect</button>\n          </ion-col>\n       \n      </ion-row>\n  \n    </ion-card >\n\n    <ion-item no-lines *ngIf="!meditationStarted && connected">\n      <br><br>\n      <h1>Waiting to begin meditation...</h1>\n    </ion-item>\n\n      <ion-item *ngIf="meditationStarted">\n        <ion-grid  >\n          <ion-row justify-content-center>\n            <h1>Beginning Meditation!</h1>\n          </ion-row>\n          <ion-row justify-content-center>\n              <img style="height:150px;width:200px;" src="assets/imgs/meditating.png">\n          </ion-row>\n         <ion-row justify-content-center>\n            <h1>\n              {{(minutesDisplay) && (minutesDisplay <= 59) ? minutesDisplay : \'00\'}} : {{(secondsDisplay) && (secondsDisplay <= 59) ? secondsDisplay : \'00\'}} <br/>\n            </h1>\n         </ion-row>\n\n        </ion-grid>\n      </ion-item>\n\n      <button ion-button large round (click)="play()">Play Sound</button>\n\n\n      <button ion-button large round (click)="callAPI()">Call API</button>\n</ion-content>\n\n\n<ion-footer  *ngIf="connected">\n\n    <ion-toolbar>\n              \n\n          <ion-grid>\n            <ion-row align-items-center>\n              <ion-col>\n                  Pressure reading: {{reading}}\n              </ion-col>\n            </ion-row>\n          </ion-grid>\n            \n         \n      </ion-toolbar>\n\n    </ion-footer> '/*ion-inline-end:"/Users/morris/smart-products/connected-walden/src/pages/home/home.html"*/,
+            selector: 'page-home',template:/*ion-inline-start:"/Users/morris/smart-products/connected-walden/src/pages/home/home.html"*/'<ion-header>\n    <ion-navbar>\n      <ion-title>\n        Walden Mobile\n      </ion-title>\n\n      <ion-buttons start *ngIf="!connected">\n          <button ion-button color="dark" icon-only item-left  (click)="navCtrl.push(\'ConfigPage\')">\n            <ion-icon name="cog"></ion-icon>\n          </button>\n        </ion-buttons>\n\n\n      <ion-buttons end>\n        <button ion-button (click)="scan()">\n          Scan\n        </button>\n      </ion-buttons>\n    </ion-navbar>\n  </ion-header>\n\n\n  <ion-content>  \n\n\n        <ion-card >\n        <ion-row >\n         \n          <ion-item *ngIf="!discovered"><h1>Searching for cushion...</h1></ion-item>\n          <ion-item *ngIf="discovered && !connected"><h1>Cushion found!</h1></ion-item>\n          <ion-item *ngIf="connected"><h1>Walden cushion connected!</h1></ion-item>\n        </ion-row>\n        <ion-row text-center>\n\n          <button *ngIf="!connected" ion-button large round color="secondary" (click)="connectDevice();" >Connect</button>\n          <button *ngIf="connected" ion-button large round color="danger" (click)="disconnect()" >Disconnect</button>\n\n       \n      </ion-row>\n  \n    </ion-card >\n\n    <ion-item no-lines *ngIf="!meditationStarted && connected">\n      <br><br>\n      <h1>Waiting to begin meditation...</h1>\n    </ion-item>\n\n      <ion-item *ngIf="meditationStarted">\n        <ion-grid  >\n          <ion-row justify-content-center>\n            <h1>Beginning Meditation!</h1>\n          </ion-row>\n          <ion-row justify-content-center>\n              <img style="height:150px;width:200px;" src="assets/imgs/meditating.png">\n          </ion-row>\n         <ion-row justify-content-center>\n            <h1>\n              {{(minutesDisplay) && (minutesDisplay <= 59) ? minutesDisplay : \'00\'}} : {{(secondsDisplay) && (secondsDisplay <= 59) ? secondsDisplay : \'00\'}} <br/>\n            </h1>\n         </ion-row>\n\n        </ion-grid>\n      </ion-item>\n\n</ion-content>\n\n\n<ion-footer  *ngIf="connected">\n\n    <ion-toolbar>\n              \n\n          <ion-grid>\n            <ion-row align-items-center>\n              <ion-col>\n                  Pressure reading: {{reading}}\n              </ion-col>\n            </ion-row>\n          </ion-grid>\n            \n         \n      </ion-toolbar>\n\n    </ion-footer> '/*ion-inline-end:"/Users/morris/smart-products/connected-walden/src/pages/home/home.html"*/,
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1_ionic_angular__["d" /* NavController */],
-            __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* ToastController */],
-            __WEBPACK_IMPORTED_MODULE_2__ionic_native_ble__["a" /* BLE */],
-            __WEBPACK_IMPORTED_MODULE_0__angular_core__["M" /* NgZone */],
-            __WEBPACK_IMPORTED_MODULE_0__angular_core__["j" /* ChangeDetectorRef */],
-            __WEBPACK_IMPORTED_MODULE_4__providers_settings_settings__["a" /* SettingsProvider */],
-            __WEBPACK_IMPORTED_MODULE_5__ionic_native_native_audio__["a" /* NativeAudio */],
-            __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__["a" /* BackgroundMode */],
-            __WEBPACK_IMPORTED_MODULE_7__angular_common_http__["a" /* HttpClient */]])
+        __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["d" /* NavController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["d" /* NavController */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* ToastController */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1_ionic_angular__["g" /* ToastController */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_2__ionic_native_ble__["a" /* BLE */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__ionic_native_ble__["a" /* BLE */]) === "function" && _c || Object, typeof (_d = typeof __WEBPACK_IMPORTED_MODULE_0__angular_core__["M" /* NgZone */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_0__angular_core__["M" /* NgZone */]) === "function" && _d || Object, typeof (_e = typeof __WEBPACK_IMPORTED_MODULE_0__angular_core__["j" /* ChangeDetectorRef */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_0__angular_core__["j" /* ChangeDetectorRef */]) === "function" && _e || Object, typeof (_f = typeof __WEBPACK_IMPORTED_MODULE_4__providers_settings_settings__["a" /* SettingsProvider */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__providers_settings_settings__["a" /* SettingsProvider */]) === "function" && _f || Object, typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_5__ionic_native_native_audio__["a" /* NativeAudio */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__ionic_native_native_audio__["a" /* NativeAudio */]) === "function" && _g || Object, typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__["a" /* BackgroundMode */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__["a" /* BackgroundMode */]) === "function" && _h || Object, typeof (_j = typeof __WEBPACK_IMPORTED_MODULE_7__angular_common_http__["a" /* HttpClient */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_7__angular_common_http__["a" /* HttpClient */]) === "function" && _j || Object])
     ], HomePage);
     return HomePage;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
 }());
 
 //# sourceMappingURL=home.js.map
+
+/***/ }),
+
+/***/ 254:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SettingsProvider; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ionic_storage__ = __webpack_require__(404);
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+
+
+/*
+  Generated class for the SettingsProvider provider.
+
+  See https://angular.io/guide/dependency-injection for more info on providers
+  and Angular DI.
+*/
+var SettingsProvider = /** @class */ (function () {
+    function SettingsProvider(storage) {
+        this.storage = storage;
+        this.timerLength = 5;
+        this.thresholdReading = 100;
+        console.log('Hello SettingsProvider Provider');
+        var that = this;
+        this.storage.get('data').then(function (data) {
+            if (data !== undefined && data != null) {
+                that.timerLength = parseFloat(data.timerLength);
+                that.thresholdReading = parseInt(data.thresholdReading);
+            }
+        });
+    }
+    SettingsProvider.prototype.setLength = function () {
+        var data = { "timerLength": this.timerLength,
+            "thresholdReading": this.thresholdReading
+        };
+        this.storage.set('data', data);
+    };
+    SettingsProvider = __decorate([
+        Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["A" /* Injectable */])(),
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__ionic_storage__["b" /* Storage */]])
+    ], SettingsProvider);
+    return SettingsProvider;
+}());
+
+//# sourceMappingURL=settings.js.map
 
 /***/ }),
 
@@ -387,11 +380,11 @@ webpackEmptyAsyncContext.id = 265;
 
 var map = {
 	"../pages/config/config.module": [
-		1163,
+		1164,
 		0
 	],
 	"../pages/home/home.module": [
-		1164,
+		1163,
 		1
 	]
 };
@@ -517,9 +510,9 @@ Object(__WEBPACK_IMPORTED_MODULE_0__angular_platform_browser_dynamic__["a" /* pl
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__ionic_native_status_bar__ = __webpack_require__(446);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__ionic_native_splash_screen__ = __webpack_require__(447);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__ionic_native_ble__ = __webpack_require__(174);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__pages_home_home__ = __webpack_require__(254);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__providers_settings_settings__ = __webpack_require__(253);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__ionic_storage__ = __webpack_require__(310);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__pages_home_home__ = __webpack_require__(253);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__providers_settings_settings__ = __webpack_require__(254);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__ionic_storage__ = __webpack_require__(404);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__ionic_native_native_audio__ = __webpack_require__(405);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__ionic_native_background_mode__ = __webpack_require__(191);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__angular_common_http__ = __webpack_require__(406);
@@ -581,8 +574,8 @@ var AppModule = /** @class */ (function () {
                 __WEBPACK_IMPORTED_MODULE_15__angular_common_http__["b" /* HttpClientModule */],
                 __WEBPACK_IMPORTED_MODULE_2_ionic_angular__["b" /* IonicModule */].forRoot(__WEBPACK_IMPORTED_MODULE_3__app_component__["a" /* MyApp */], {}, {
                     links: [
-                        { loadChildren: '../pages/config/config.module#ConfigPageModule', name: 'ConfigPage', segment: 'config', priority: 'low', defaultHistory: [] },
-                        { loadChildren: '../pages/home/home.module#HomePageModule', name: 'HomePage', segment: 'home', priority: 'low', defaultHistory: [] }
+                        { loadChildren: '../pages/home/home.module#HomePageModule', name: 'HomePage', segment: 'home', priority: 'low', defaultHistory: [] },
+                        { loadChildren: '../pages/config/config.module#ConfigPageModule', name: 'ConfigPage', segment: 'config', priority: 'low', defaultHistory: [] }
                     ]
                 }),
                 __WEBPACK_IMPORTED_MODULE_12__ionic_storage__["a" /* IonicStorageModule */].forRoot()
@@ -625,7 +618,7 @@ var AppModule = /** @class */ (function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ionic_native_status_bar__ = __webpack_require__(446);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__ionic_native_splash_screen__ = __webpack_require__(447);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__ionic_native_ble__ = __webpack_require__(174);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__pages_home_home__ = __webpack_require__(254);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__pages_home_home__ = __webpack_require__(253);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__ionic_native_background_mode__ = __webpack_require__(191);
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
